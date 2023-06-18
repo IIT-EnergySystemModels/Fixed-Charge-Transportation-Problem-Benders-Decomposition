@@ -1,3 +1,21 @@
+$title Transportation Pproblem
+
+$OnText
+Developed by
+
+   Andres Ramos
+   Instituto de Investigacion Tecnologica
+   Escuela Tecnica Superior de Ingenieria - ICAI
+   UNIVERSIDAD PONTIFICIA COMILLAS
+   Alberto Aguilera 23
+   28015 Madrid, Spain
+   Andres.Ramos@comillas.edu
+   https://pascua.iit.comillas.edu/aramos/Ramos_CV.htm
+
+   May 8, 2023
+
+$OffText
+
 sets
    I origins      / VIGO, ALGECIRAS /
    J destinations / MADRID, BARCELONA, VALENCIA / ;

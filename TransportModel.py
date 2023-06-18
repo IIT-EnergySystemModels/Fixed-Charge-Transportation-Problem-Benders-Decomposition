@@ -2,6 +2,19 @@ import pyomo.environ as pyo
 from   pyomo.environ import ConcreteModel, Set, Param, Var, NonNegativeReals, Constraint, Objective, minimize, Suffix
 from   pyomo.opt     import SolverFactory
 
+# Developed by
+#
+#    Andres Ramos
+#    Instituto de Investigacion Tecnologica
+#    Escuela Tecnica Superior de Ingenieria - ICAI
+#    UNIVERSIDAD PONTIFICIA COMILLAS
+#    Alberto Aguilera 23
+#    28015 Madrid, Spain
+#    Andres.Ramos@comillas.edu
+#    https://pascua.iit.comillas.edu/aramos/Ramos_CV.htm
+#
+#    May 8, 2023
+
 mTransport = ConcreteModel('Transportation Problem')
 
 mTransport.i = Set(initialize=['Vigo',   'Algeciras'            ], doc='origins'     )
