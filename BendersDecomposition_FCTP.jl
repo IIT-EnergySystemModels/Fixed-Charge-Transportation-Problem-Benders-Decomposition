@@ -1,4 +1,4 @@
-# Fixed-charge transportation problem (FCTP) solved by Benders decomposition
+# Deterministic Fixed-charge Transportation Problem (FCTP) solved by Benders decomposition
 
 # Developed by
 
