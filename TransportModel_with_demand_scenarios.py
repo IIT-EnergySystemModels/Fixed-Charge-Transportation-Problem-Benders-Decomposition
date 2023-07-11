@@ -1,9 +1,9 @@
-import pyomo.environ as pyo
-from   pyomo.environ import ConcreteModel, Set, Param, Var, NonNegativeReals, Constraint, Objective, minimize, Suffix
-from   pyomo.opt     import SolverFactory
-from pyomo.contrib import appsi
-import numpy as np
-from pyomo.common.timing import HierarchicalTimer
+import numpy               as np
+import pyomo.environ       as pyo
+from   pyomo.environ       import ConcreteModel, Set, Param, Var, NonNegativeReals, Constraint, Objective, minimize, Suffix
+from   pyomo.opt           import SolverFactory
+from   pyomo.contrib       import appsi
+from   pyomo.common.timing import HierarchicalTimer
 
 # Developed by
 #

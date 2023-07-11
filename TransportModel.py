@@ -61,4 +61,3 @@ mTransport.pprint()
 mTransport.vX.display()
 for j in mTransport.j:
     print(mTransport.dual[mTransport.eDemand[j]])
-
