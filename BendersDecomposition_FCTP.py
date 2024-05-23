@@ -1,6 +1,6 @@
 import pandas as pd
 import pyomo.environ as pyo
-from   pyomo.environ import ConcreteModel, Set, Param, Var, Binary, NonNegativeReals, RealSet, Constraint, Objective, minimize, Suffix, TerminationCondition
+from   pyomo.environ import ConcreteModel, Set, Param, Var, Binary, NonNegativeReals, Reals, Constraint, Objective, minimize, Suffix, TerminationCondition
 from   pyomo.opt     import SolverFactory
 
 # Developed by
@@ -64,7 +64,7 @@ mFCTP.pC      = Param(mFCTP.i, mFCTP.j, initialize=TransportationCost, doc='per 
 mFCTP.vY      = Var  (mFCTP.i, mFCTP.j, bounds=(0,1), doc='units transported', within=Binary)
 mMaster_Bd.vY = Var  (mFCTP.i, mFCTP.j, bounds=(0,1), doc='units transported', within=Binary)
 
-mMaster_Bd.vTheta = Var(doc='transportation cost', within=RealSet)
+mMaster_Bd.vTheta = Var(doc='transportation cost', within=Reals)
 
 mFCTP.vX      = Var  (mFCTP.i, mFCTP.j, bounds=(0.0,None), doc='units transported', within=NonNegativeReals)
 mFCTP.vDNS    = Var  (         mFCTP.j, bounds=(0.0,None), doc='demand not served', within=NonNegativeReals)
@@ -114,17 +114,17 @@ for l in mMaster_Bd.l:
 
         # solving master problem
         SolverResultsMst = Solver.solve(mMaster_Bd)
-        Z1               = mMaster_Bd.eCostMst.expr()
+        Z1               = mMaster_Bd.eCostMst()
 
         for i,j in mFCTP.i*mFCTP.j:
             # storing the master solution
-            Y_L[l,i,j] = pyo.value(mMaster_Bd.vY[i,j])
+            Y_L[l,i,j] = mMaster_Bd.vY[i,j]()
             # fix investment decision for the subproblem
             mFCTP.vY[i,j].fix(Y_L[l,i,j])
 
         # solving subproblem
         SolverResultsSbp    = Solver.solve(mFCTP)
-        Z2                  = mFCTP.eCostSubp.expr()
+        Z2                  = mFCTP.eCostSubp()
         Z2_L[l]             = Z2
 
         # storing parameters to build a new Benders cut
@@ -134,9 +134,8 @@ for l in mMaster_Bd.l:
         else:
             # updating lower and upper bound
             Z_Lower =              Z1
-            Z_Upper = min(Z_Upper, Z1 - pyo.value(mMaster_Bd.vTheta) + Z2)
-            print('Iteration ', l, ' Z_Lower ... ', Z_Lower)
-            print('Iteration ', l, ' Z_Upper ... ', Z_Upper)
+            Z_Upper = min(Z_Upper, Z1 - mMaster_Bd.vTheta() + Z2)
+            print('Iteration ', l, ' Z_Lower ... ', Z_Lower, ' Z_Upper ... ', Z_Upper)
 
             mMaster_Bd.vTheta.free()
 
@@ -150,6 +149,8 @@ for l in mMaster_Bd.l:
         # add one cut
         mMaster_Bd.ll.add(l)
         ll = mMaster_Bd.ll
+        if l != mMaster_Bd.l.first():
+            mMaster_Bd.del_component(mMaster_Bd.eBd_Cuts)
         mMaster_Bd.eBd_Cuts = Constraint(mMaster_Bd.ll, rule=eBd_Cuts, doc='Benders cuts')
 
 # mFCTP.eCostSubp.deactivate()
