@@ -1,10 +1,3 @@
-import numpy               as np
-import pyomo.environ       as pyo
-from   pyomo.environ       import ConcreteModel, Set, Param, Var, NonNegativeReals, Constraint, Objective, minimize, Suffix
-from   pyomo.opt           import SolverFactory
-from   pyomo.contrib       import appsi
-from   pyomo.common.timing import HierarchicalTimer
-
 # Developed by
 #
 #    Andres Ramos
@@ -16,7 +9,14 @@ from   pyomo.common.timing import HierarchicalTimer
 #    Andres.Ramos@comillas.edu
 #    https://pascua.iit.comillas.edu/aramos/Ramos_CV.htm
 #
-#    May 8, 2023
+#    May 25, 2025
+
+import numpy               as np
+import pyomo.environ       as pyo
+from   pyomo.environ       import ConcreteModel, Set, Param, Var, NonNegativeReals, Constraint, Objective, minimize, Suffix
+from   pyomo.opt           import SolverFactory
+from   pyomo.contrib       import appsi
+from   pyomo.common.timing import HierarchicalTimer
 
 mTransport = ConcreteModel('Transportation Problem with many demand scenarios')
 
@@ -36,9 +36,9 @@ TransportationCost = {
     ('Algeciras', 'Valencia' ): 0.11,
     }
 
-mTransport.pC = Param(mTransport.i, mTransport.j, initialize=TransportationCost, doc='per unit transportation cost')
+mTransport.pC = Param(mTransport.i*mTransport.j, initialize=TransportationCost, doc='per unit transportation cost')
 
-mTransport.vX = Var  (mTransport.i, mTransport.j, bounds=(0.0,None), doc='units transported', within=NonNegativeReals)
+mTransport.vX = Var  (mTransport.i*mTransport.j, bounds=(0.0,None), doc='units transported', within=NonNegativeReals)
 
 def eCapacity(mTransport, i):
     return sum(mTransport.vX[i,j] for j in mTransport.j) <= mTransport.pA[i]
