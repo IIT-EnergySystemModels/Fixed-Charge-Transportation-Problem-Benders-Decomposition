@@ -7,6 +7,8 @@
 #    28015 Madrid, Spain
 #    Andres.Ramos@comillas.edu
 
+# May 17, 2024
+
 import pandas as pd
 from pyomo.environ import ConcreteModel, NonNegativeIntegers, Set, Param, Var, Constraint, Objective, minimize
 from pyomo.opt     import SolverFactory
@@ -53,7 +55,7 @@ def plain_run(mHP, SolverName):
                     Neighbors[x,y].append((xx,yy))
 
     # parameters
-    mHP.pNodes = Param(mHP.x, mHP.y, initialize=Nodes, doc='number of connections per node')
+    mHP.pNodes = Param(mHP.x*mHP.y, initialize=Nodes, doc='number of connections per node')
 
     # Variables
     mHP.vConnection = Var(Arcs, within=NonNegativeIntegers, doc='connections between two neighbor nodes')

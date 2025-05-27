@@ -63,5 +63,5 @@ for p_val in np.linspace(0.8, 1):
         mTransport.pB[j] = float(p_val)*mTransport.pD[j]
     res = opt.solve(mTransport, timer=timer)
     assert res.termination_condition == appsi.base.TerminationCondition.optimal
-    print(mTransport.eCost())
+    print('Transportation cost', mTransport.eCost())
 print(timer)
