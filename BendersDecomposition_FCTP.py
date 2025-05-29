@@ -58,16 +58,16 @@ TransportationCost = {
     ('i4', 'j3'): 2,
     }
 
-mFCTP.pF      = Param(mFCTP.i, mFCTP.j, initialize=FixedCost,          doc='fixed investment cost'       )
-mFCTP.pC      = Param(mFCTP.i, mFCTP.j, initialize=TransportationCost, doc='per unit transportation cost')
+mFCTP.pF      = Param(mFCTP.i*mFCTP.j, initialize=FixedCost,          doc='fixed investment cost'       )
+mFCTP.pC      = Param(mFCTP.i*mFCTP.j, initialize=TransportationCost, doc='per unit transportation cost')
 
-mFCTP.vY      = Var  (mFCTP.i, mFCTP.j, bounds=(0,1), doc='units transported', within=Binary)
-mMaster_Bd.vY = Var  (mFCTP.i, mFCTP.j, bounds=(0,1), doc='units transported', within=Binary)
+mFCTP.vY      = Var  (mFCTP.i*mFCTP.j, bounds=(0,1), doc='units transported', within=Binary)
+mMaster_Bd.vY = Var  (mFCTP.i*mFCTP.j, bounds=(0,1), doc='units transported', within=Binary)
 
 mMaster_Bd.vTheta = Var(doc='transportation cost', within=Reals)
 
-mFCTP.vX      = Var  (mFCTP.i, mFCTP.j, bounds=(0.0,None), doc='units transported', within=NonNegativeReals)
-mFCTP.vDNS    = Var  (         mFCTP.j, bounds=(0.0,None), doc='demand not served', within=NonNegativeReals)
+mFCTP.vX      = Var  (mFCTP.i*mFCTP.j, bounds=(0.0,None), doc='units transported', within=NonNegativeReals)
+mFCTP.vDNS    = Var  (        mFCTP.j, bounds=(0.0,None), doc='demand not served', within=NonNegativeReals)
 
 def eCostMst(mMaster_Bd):
     return sum(mFCTP.pF[i,j]*mMaster_Bd.vY[i,j] for i,j in mFCTP.i*mFCTP.j) + mMaster_Bd.vTheta
@@ -86,11 +86,11 @@ mFCTP.eCapacity  = Constraint(mFCTP.i,        rule=eCapacity,  doc='maximum capa
 
 def eDemand  (mFCTP, j):
     return sum(mFCTP.vX[i,j] for i in mFCTP.i) + mFCTP.vDNS[j] >= mFCTP.pB[j]
-mFCTP.eDemand    = Constraint(        mFCTP.j, rule=eDemand,    doc='demand supply at destination'   )
+mFCTP.eDemand    = Constraint(        mFCTP.j, rule=eDemand,    doc='demand supply at destination'  )
 
 def eFlowLimit(mFCTP, i, j):
     return mFCTP.vX[i,j] <= min(mFCTP.pA[i],mFCTP.pB[j])*mFCTP.vY[i,j]
-mFCTP.eFlowLimit = Constraint(mFCTP.i*mFCTP.j, rule=eFlowLimit, doc='arc flow limit'                 )
+mFCTP.eFlowLimit = Constraint(mFCTP.i*mFCTP.j, rule=eFlowLimit, doc='arc flow limit'                )
 
 mFCTP.dual = Suffix(direction=Suffix.IMPORT)
 
@@ -102,19 +102,22 @@ Z_Lower = float('-inf')
 Z_Upper = float(' inf')
 BdTol   = 1e-6
 
-Y_L   = pd.Series([0.]*len(mMaster_Bd.l*mFCTP.i*mFCTP.j), index=pd.MultiIndex.from_tuples(mMaster_Bd.l*mFCTP.i*mFCTP.j))
-PI_L  = pd.Series([0.]*len(mMaster_Bd.l*mFCTP.i*mFCTP.j), index=pd.MultiIndex.from_tuples(mMaster_Bd.l*mFCTP.i*mFCTP.j))
-Z2_L  = pd.Series([0.]*len(mMaster_Bd.l                ), index=mMaster_Bd.l)
-Delta = pd.Series([0.]*len(mMaster_Bd.l                ), index=mMaster_Bd.l)
+Y_L   = pd.Series([0.0]*len(mMaster_Bd.l*mFCTP.i*mFCTP.j), index=mMaster_Bd.l*mFCTP.i*mFCTP.j)
+PI_L  = pd.Series([0.0]*len(mMaster_Bd.l*mFCTP.i*mFCTP.j), index=mMaster_Bd.l*mFCTP.i*mFCTP.j)
+Z2_L  = pd.Series([0.0]*len(mMaster_Bd.l                ), index=mMaster_Bd.l)
+Delta = pd.Series([0.0]*len(mMaster_Bd.l                ), index=mMaster_Bd.l)
 
 # Benders algorithm
 mMaster_Bd.vTheta.fix(0)
 for l in mMaster_Bd.l:
     if abs(1-Z_Lower/Z_Upper) > BdTol or l == mMaster_Bd.l.first():
 
-        # solving master problem
+        # solving the master problem
+        mMaster_Bd.write(f'Master_Bd_{l}.lp', io_options={'symbolic_solver_labels': True})
         SolverResultsMst = Solver.solve(mMaster_Bd)
         Z1               = mMaster_Bd.eCostMst()
+
+        mMaster_Bd.vY.pprint()
 
         for i,j in mFCTP.i*mFCTP.j:
             # storing the master solution
@@ -122,7 +125,8 @@ for l in mMaster_Bd.l:
             # fix investment decision for the subproblem
             mFCTP.vY[i,j].fix(Y_L[l,i,j])
 
-        # solving subproblem
+        # solving the subproblem
+        mFCTP.write(f'mFCTP_{l}.lp', io_options={'symbolic_solver_labels': True})
         SolverResultsSbp    = Solver.solve(mFCTP)
         Z2                  = mFCTP.eCostSubp()
         Z2_L[l]             = Z2
@@ -132,7 +136,7 @@ for l in mMaster_Bd.l:
             # the problem has to be feasible because I am not able to obtain the sum of infeasibilities of the phase I
             Delta[l] =  0
         else:
-            # updating lower and upper bound
+            # updating lower and upper bounds
             Z_Lower =              Z1
             Z_Upper = min(Z_Upper, Z1 - mMaster_Bd.vTheta() + Z2)
             print('Iteration ', l, ' Z_Lower ... ', Z_Lower, ' Z_Upper ... ', Z_Upper)

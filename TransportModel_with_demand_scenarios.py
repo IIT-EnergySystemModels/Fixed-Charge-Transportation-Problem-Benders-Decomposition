@@ -23,7 +23,7 @@ mTransport = ConcreteModel('Transportation Problem with many demand scenarios')
 mTransport.i = Set(initialize=['Vigo',   'Algeciras'            ], doc='origins'     )
 mTransport.j = Set(initialize=['Madrid', 'Barcelona', 'Valencia'], doc='destinations')
 
-mTransport.pA = Param(mTransport.i, initialize={'Vigo'  : 350, 'Algeciras': 700                 }, doc='origin capacity'   )
+mTransport.pA = Param(mTransport.i, initialize={'Vigo'  : 350, 'Algeciras': 700                 }, doc='origin capacity'                 )
 mTransport.pB = Param(mTransport.j, initialize={'Madrid': 400, 'Barcelona': 450, 'Valencia': 150}, doc='destination demand', mutable=True)
 mTransport.pD = Param(mTransport.j, initialize={'Madrid': 400, 'Barcelona': 450, 'Valencia': 150}, doc='destination demand', mutable=True)
 
