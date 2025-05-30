@@ -117,7 +117,7 @@ for l in mMaster_Bd.l:
         SolverResultsMst = Solver.solve(mMaster_Bd)
         Z1               = mMaster_Bd.eCostMst()
 
-        mMaster_Bd.vY.pprint()
+        # mMaster_Bd.vY.pprint()
 
         for i,j in mFCTP.i*mFCTP.j:
             # storing the master solution
